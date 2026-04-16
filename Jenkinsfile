@@ -73,36 +73,24 @@ pipeline {
             steps {
                 dir('flutter_calculator') {
                     script {
-                        // Clean previous build artifacts
-                        bat "if exist build\\app\\outputs\\flutter-apk rmdir /s /q build\\app\\outputs\\flutter-apk"
 
-                        // Run flutter pub get and check exit code
-                        def pubGet = bat "flutter build apk --${params.BUILD_TYPE} --verbose"
-                        if (pubGet != 0) {
-                            error "flutter pub get failed with exit code: ${pubGet}"
-                        }
+                        // 🔥 bersihin cache lama
+                        bat "rd /s /q %USERPROFILE%\\.gradle\\caches || echo no cache"
+                        bat "rd /s /q %USERPROFILE%\\.gradle\\daemon || echo no daemon"
 
-                        // Run flutter build and check exit code
-                        def buildResult = bat(script: "flutter build apk --${params.BUILD_TYPE} --verbose", returnStatus: true)
-                        if (buildResult != 0) {
-                            error "flutter build apk --${params.BUILD_TYPE} failed with exit code: ${buildResult}"
-                        }
+                        // 🔥 stop gradle lama
+                        bat "cd android && gradlew --stop"
 
-                        // Debug: show full build output directory tree
-                        echo "=== Listing build output directory ==="
-                        bat "if exist build\\app\\outputs dir /s /b build\\app\\outputs || echo build\\app\\outputs does not exist"
+                        // 🔥 clean project
+                        bat "flutter clean"
+                        bat "flutter pub get"
+                        bat "cd android && gradlew clean"
 
-                        // Try standard path
-                        def apkFullPath = "${env.WORKSPACE}\\build\\app\\outputs\\flutter-apk\\app-${params.BUILD_TYPE}.apk"
+                        // 🔥 cek versi gradle
+                        bat "cd android && gradlew -v"
 
-                        // If not found, search entire build folder for any APK
-                        if (!fileExists(apkFullPath)) {
-                            echo "APK not found at standard path, searching entire workspace for APKs..."
-                            bat "dir /s /b \"${env.WORKSPACE}\\build\\*.apk\" || echo No APK files found anywhere in build folder"
-                            error "APK not found at: ${apkFullPath} — check the search results above to find where it was placed."
-                        }
-
-                        echo "✅ APK successfully built at: ${apkFullPath}"
+                        // 🔥 build
+                        bat "flutter build apk --${params.BUILD_TYPE} --verbose"
                     }
                 }
             }
