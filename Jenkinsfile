@@ -77,7 +77,7 @@ pipeline {
                         bat "if exist build\\app\\outputs\\flutter-apk rmdir /s /q build\\app\\outputs\\flutter-apk"
 
                         // Run flutter pub get and check exit code
-                        def pubGet = bat(script: 'flutter pub get', returnStatus: true)
+                        def pubGet = bat "flutter build apk --${params.BUILD_TYPE} --verbose"
                         if (pubGet != 0) {
                             error "flutter pub get failed with exit code: ${pubGet}"
                         }
