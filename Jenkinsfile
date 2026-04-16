@@ -74,23 +74,27 @@ pipeline {
                 dir('flutter_calculator') {
                     script {
 
-                        // 🔥 bersihin cache lama
+                        bat "set JAVA_HOME=C:\\Program Files\\Android\\Android Studio\\jbr"
+                        bat "set PATH=%JAVA_HOME%\\bin;%PATH%"
+
                         bat "rd /s /q %USERPROFILE%\\.gradle\\caches || echo no cache"
                         bat "rd /s /q %USERPROFILE%\\.gradle\\daemon || echo no daemon"
 
-                        // 🔥 stop gradle lama
-                        bat "cd android && gradlew --stop"
+                        bat "cd android && gradlew.bat --stop"
 
-                        // 🔥 clean project
                         bat "flutter clean"
                         bat "flutter pub get"
-                        bat "cd android && gradlew clean"
 
-                        // 🔥 cek versi gradle
-                        bat "cd android && gradlew -v"
+                        bat "cd android && gradlew.bat clean"
 
-                        // 🔥 build
-                        bat "flutter build apk --${params.BUILD_TYPE} --verbose"
+                        def result = bat(
+                            script: "flutter build apk --debug",
+                            returnStatus: true
+                        )
+
+                        if (result != 0) {
+                            error "Build failed"
+                        }
                     }
                 }
             }
