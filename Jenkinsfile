@@ -31,7 +31,7 @@ pipeline {
         ANDROID_HOME     = "C:\\Users\\Nisrina\\AppData\\Local\\Android\\Sdk"
         ANDROID_SDK_ROOT = "${ANDROID_HOME}"
         FLUTTER_HOME     = "D:\\MobDev\\Flutter SDK\\flutter"
-        JAVA_HOME = "C:\\Program Files\\Android\\Android Studio\\jbr"
+        JAVA_HOME = "C:\\Program Files\\Java\\jdk-17"
         PATH = "${FLUTTER_HOME}\\bin;${JAVA_HOME}\\bin;${ANDROID_HOME}\\platform-tools;${ANDROID_HOME}\\emulator;${env.PATH}"
 
         AVD_NAME    = "Pixel_4_XL"
@@ -74,28 +74,22 @@ pipeline {
                 dir('flutter_calculator') {
                     script {
 
-                        // Set Java 17 (WAJIB)
-                        bat 'set JAVA_HOME=C:\\Program Files\\Java\\jdk-17'
-                        bat 'set PATH=%JAVA_HOME%\\bin;%PATH%'
+                        // Debug Java version
+                        bat "java -version"
 
-                        // Clean cache
-                        bat "rd /s /q %USERPROFILE%\\.gradle\\caches || echo no cache"
-                        bat "rd /s /q %USERPROFILE%\\.gradle\\daemon || echo no daemon"
+                        // Clean TOTAL
+                        bat "rd /s /q %USERPROFILE%\\.gradle || echo no gradle"
                         bat "rd /s /q android\\.gradle || echo no android cache"
 
                         // Stop daemon
-                        bat "cd android && gradlew.bat --stop"
-
-                        // Force update gradle wrapper
-                        bat "cd android && gradlew.bat wrapper --gradle-version 8.5"
+                        bat "cd android && gradlew.bat --stop || echo no daemon"
 
                         // Clean project
                         bat "flutter clean"
                         bat "flutter pub get"
-                        bat "cd android && gradlew.bat clean"
 
-                        // Build
-                        def result = bat(script: "flutter build apk --debug", returnStatus: true)
+                        // Build langsung (biar Flutter handle Gradle)
+                        def result = bat(script: "flutter build apk --${params.BUILD_TYPE}", returnStatus: true)
 
                         if (result != 0) {
                             error "Build failed"
